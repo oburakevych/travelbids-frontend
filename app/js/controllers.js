@@ -67,7 +67,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					var secondsLeft = Math.round((timeLeftMillis - COUNT_DOWN_INTERVAL)/1000);
 					$scope.displayCount(secondsLeft);
 
-					return $scope.secondsLeft;
+					return secondsLeft;
 				}
 
 				return Math.round(timeLeftMillis - COUNT_DOWN_INTERVAL/1000);
@@ -90,7 +90,11 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 						$scope.displayCountClass = "count-verify";
 						break;
 				}
+
+				$scope.$apply();
 			}
+
+			
 		}
 
 		$scope.startCountdown = function() {
