@@ -1,0 +1,20 @@
+<div ng-controller="AuctionController">
+	<h3>{{auctionId}}</h3>
+  	<p>{{auction.name}}</p>
+  	<p>{{auction.endDate}}</p>
+  	<h1>{{displayCountClass}}</h1>
+  	<div ng-class="displayCountClass">
+  		TEST
+		<h3 id="time_left{{auction.id}}"></h3>
+  	</div>
+  	<p>Price: {{auction.price | currency:"$"}}</p>
+  	{{authUser.id}}
+  	<button ng-show="isUserLoggedIn()" class="btn btn-primary" ng-click="bid()">Bid</button>
+  	<button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
+
+  	<div>
+  		<ul>
+  			<li ng-repeat="bidder in biddingHistory" class="bidder-{{$index}}">{{bidder.username}}</li>
+  		</ul>
+  	</div>
+</div>

@@ -28,3 +28,40 @@
   content: "";
   padding: 0;
 }
+
+.header {
+  border-bottom: 1px solid black ;
+  margin-bottom: 12px;
+}
+
+.login-top {
+  margin-top: 24px;
+}
+
+.balance {
+  margin-top: 24px; 
+}
+
+.bidder-0 {
+  color: red;
+}
+
+.count-once {
+  background-color: blue;
+}
+
+.count-twice {
+  background-color: green;
+}
+
+.count-final {
+  background-color: red;
+}
+
+.count-verify {
+  //background-color: red;
+}
+
+.count-defaut {
+  background-color: navy;
+}
