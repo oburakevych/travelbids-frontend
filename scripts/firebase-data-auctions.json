@@ -4,26 +4,26 @@
 	  "-J-JAWUKxN4LmyfIN3Y-" : {
 	    "name" : "Test Auction 1",
 	    "id" : "-J-JAWUKxN4LmyfIN3Y-",
-	    "endDate" : "Fri, 2 Aug 2013 13:15:00 GMT",
-	    "price" : 0.00,
+	    "endDate" : 1375967060000,
+	    "price" : 0.01,
 	    "status": "COUNTDOWN",
-	    "COUNT_DOWN_TIME": 21
+	    "COUNT_DOWN_TIME": 21000
 	  },
 	  "-J-JFo7Musxjpqvs1H-u" : {
 	    "name" : "Test Auction 1",
 	    "id" : "-J-JFo7Musxjpqvs1H-u",
-	    "endDate" : "Fri, 2 Aug 2013 14:00:00 GMT",
-	    "price" : 0.00,
+	    "endDate" : 1375967060000,
+	    "price" : 0.01,
 	    "status": "STARTED",
-	    "COUNT_DOWN_TIME": 21
+	    "COUNT_DOWN_TIME": 21000
 	  },
 	  "-J-J9pK14iFXayBDe1H5" : {
 	    "name" : "Test Auction 3",
 	    "id" : "-J-J9pK14iFXayBDe1H5",
-	    "endDate" : "Fri, 2 Aug 2013 15:00:00 GMT",
-	    "price" : 0.00,
+	    "endDate" : 1375967060000,
+	    "price" : 0.01,
 	    "status": "STARTED",
-	    "COUNT_DOWN_TIME": 21
+	    "COUNT_DOWN_TIME": 21000
 	  }
 	},
 	"user": {

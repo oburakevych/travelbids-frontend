@@ -2,18 +2,27 @@
 	<h3>{{auctionId}}</h3>
   	<p>{{auction.name}}</p>
   	<p>{{auction.endDate}}</p>
+    <div ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED' || auction.status == 'STARTED')">
+      <button ng-click="resetTimer()">Reset Timer</button>
+      <input type="number" ng-model="resetSeconds"/>
+    </div>
   	<h1>{{displayCountClass}}</h1>
-  	<div ng-class="displayCountClass">
-		<h3 id="time_left{{auction.id}}"></h3>
+  	<div ng-class="displayCount(timeLeft)">
+      <h3>{{timeLeft | readableTime}}</h3>
   	</div>
-  	<p>Price: {{auction.price | currency:"$"}}</p>
-  	{{authUser.id}}
-  	<button ng-show="isUserLoggedIn()" class="btn btn-primary" ng-click="bid()">Bid</button>
-  	<button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
+    <h3 ng-show="winner"><span class="label label-success">Winner: {{winner.name}}</span></h3>
+  	<p>Price: {{auction.price | currency}}</p>
+    <div ng-hide="auctionFinished || auction.status == 'FINISHED'">
+      <button ng-show="!isZeroOrNegativeBallance()" class="btn btn-primary" ng-click="bid()">Bid</button>
+      <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
+      <button ng-show="isZeroOrNegativeBallance()" class="btn btn-primary" ng-click="">Buy more tokens</button>
+    </div>
 
   	<div>
-  		<ul>
-  			<li ng-repeat="bidder in biddingHistory" class="bidder-{{$index}}">{{bidder.username}}</li>
-  		</ul>
+      <ul class="nav nav-pills nav-stacked">
+          <li ng-animate="'animate'" ng-repeat="bidder in biddingHistory" class="bidder-{{$index}}">
+            <a href="#"> {{bidder.username}} </a>
+          </li> 
+      </ul>
   	</div>
 </div>

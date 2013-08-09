@@ -43,7 +43,9 @@
 }
 
 .bidder-0 {
-  color: red;
+  text-align: center;
+  font-size: 24px;
+  background-color: rgba(240, 240, 200, 1);
 }
 
 .count-once {
@@ -64,4 +66,34 @@
 
 .count-defaut {
   background-color: navy;
+}
+
+// Animation
+.animate-enter, 
+.animate-leave
+{ 
+  -webkit-transition: 800ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  -moz-transition: 800ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  -ms-transition: 800ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  -o-transition: 800ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  transition: 800ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space:nowrap;
+} 
+
+.animate-leave.animate-leave-active,
+.animate-enter {
+  opacity: 0;
+  width: 0px;
+  height: 0px;
+}
+
+.animate-enter.animate-enter-active, 
+.animate-leave {
+  opacity: 1;
+  width: 150px;
+  height: 30px;
 }
