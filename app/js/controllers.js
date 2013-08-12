@@ -41,7 +41,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				$timeout(function() {
 					$scope.resetSeconds = 20;
 					
-					var winnerPromise = angularFire(travelBidsFirebaseRef + "/user/" + $scope.auction.winnerUserId, $scope, 'winner', {});
+					var winnerPromise = angularFire(travelBidsFirebaseRef + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
 					winnerPromise.then(function(disassociate) {
 						$scope.winnerDisassociateFn = disassociate;
 					});
@@ -85,8 +85,6 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				if ($scope.auction) {
 					$scope.auctionDisassociateFn = disassociate;
 					$scope.auctionRef = travelBidsFirebaseRef.child('auction/' + $scope.auction.id);
-
-					$scope.authUserRef = travelBidsFirebaseRef.child('user/' + $rootScope.authUser.id);
 					
 					$scope.biddingHistoryRef = travelBidsFirebaseRef.child('bidding-history/auction/' + $scope.auction.id);
 					$scope.biddingHistory = FixedQueue(10);
@@ -236,23 +234,28 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		/*
 		$scope.getTimeDiff = function() {
 			console.log("getTimeDiff");
-			$scope.authUserRef.transaction(function(user) {
-				user.SERVER_TIME = Firebase.ServerValue.TIMESTAMP;
-				return user;
-			}, function(error, committed, snapshot) {
-				if (error) {
-					console.wrror("Error getting the SERVER_TIME");
-				}
 
-				if (committed) {
-					var serv = snapshot.val();
-					var serverDate = new Date(snapshot.val().SERVER_TIME * 1000);
-					var localDate = new Date();
+			if ($rootScope.authUser) { 
+				$scope.authUserRef = travelBidsFirebaseRef.child('user/' + $rootScope.authUser.id);
 
-					console.log("Server date: " + serverDate);
-					console.log("Local  date: " + localDate);
-				}
-			});
+				$scope.authUserRef.transaction(function(user) {
+					user.SERVER_TIME = Firebase.ServerValue.TIMESTAMP;
+					return user;
+				}, function(error, committed, snapshot) {
+					if (error) {
+						console.wrror("Error getting the SERVER_TIME");
+					}
+
+					if (committed) {
+						var serv = snapshot.val();
+						var serverDate = new Date(snapshot.val().SERVER_TIME * 1000);
+						var localDate = new Date();
+
+						console.log("Server date: " + serverDate);
+						console.log("Local  date: " + localDate);
+					}
+				});
+			}
 		}
 		*/
 

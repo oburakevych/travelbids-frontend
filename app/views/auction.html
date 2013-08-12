@@ -10,7 +10,7 @@
   	<div ng-class="displayCount(timeLeft)">
       <h3>{{timeLeft | readableTime}}</h3>
   	</div>
-    <h3 ng-show="winner"><span class="label label-success">Winner: {{winner.name}}</span></h3>
+    <h3 ng-show="winner"><span class="label label-success">Winner: {{winner}}</span></h3>
   	<p>Price: {{auction.price | currency}}</p>
     <div ng-hide="auctionFinished || auction.status == 'FINISHED'">
       <button ng-show="!isZeroOrNegativeBallance()" class="btn btn-primary" ng-click="bid()">Bid</button>
