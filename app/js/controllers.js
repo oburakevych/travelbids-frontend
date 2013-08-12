@@ -85,6 +85,8 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				if ($scope.auction) {
 					$scope.auctionDisassociateFn = disassociate;
 					$scope.auctionRef = travelBidsFirebaseRef.child('auction/' + $scope.auction.id);
+
+					$scope.authUserRef = travelBidsFirebaseRef.child('user/' + $rootScope.authUser.id);
 					
 					$scope.biddingHistoryRef = travelBidsFirebaseRef.child('bidding-history/auction/' + $scope.auction.id);
 					$scope.biddingHistory = FixedQueue(10);
@@ -113,7 +115,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		
 		$scope.calculateTimeLeft = function() {
 			if ($scope.auction) {
-				var timeLeftMillis = $scope.auction.endDate - new Date().getTime();
+				var timeLeftMillis = $scope.auction.endDate - Date.now();
 
 				return timeLeftMillis;
 			}
@@ -149,7 +151,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 			$scope.timeLeft = $scope.calculateTimeLeft();
 
 			$scope.auctionIntervalTimerId = setInterval(function() {
-				//var start = new Date().getTime();
+				//var start = Date.now();
 				if ($scope.auction.status === 'FINISHED') {
 
 					$scope.$apply();
@@ -172,7 +174,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				}
 
 				$scope.$apply();
-				//console.log("Time to calculate: " + (new Date().getTime() - start));
+				//console.log("Time to calculate: " + (Date.now() - start));
 			}, COUNT_DOWN_INTERVAL);
 		}
 
@@ -199,7 +201,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 						auction.endDate = auctionEndDate;
 					}
 
-					auction.price = Math.round((auction.price + 0.01) * 1000)/1000;
+					auction.price = Math.round((auction.price + 0.01) * 100)/100;
 
 					$rootScope.authUser.balance -= 1.0;
 					$scope.biddingHistoryEntry = $scope.biddingHistoryRef.push({'username': $rootScope.authUser.name, 'userId': $rootScope.authUser.id, 'date': Firebase.ServerValue.TIMESTAMP});
@@ -218,11 +220,10 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				});
 				
 			}
-
 		}
 
 		$scope.getNewEndDate = function() {
-			var nowMillis = new Date().getTime();
+			var nowMillis = Date.now();
 			var millis = nowMillis + $scope.auction.COUNT_DOWN_TIME;
 
 			if(millis < $scope.auction.endDate) {
@@ -232,16 +233,41 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 			return millis + 100;
 		}
 
+		/*
+		$scope.getTimeDiff = function() {
+			console.log("getTimeDiff");
+			$scope.authUserRef.transaction(function(user) {
+				user.SERVER_TIME = Firebase.ServerValue.TIMESTAMP;
+				return user;
+			}, function(error, committed, snapshot) {
+				if (error) {
+					console.wrror("Error getting the SERVER_TIME");
+				}
+
+				if (committed) {
+					var serv = snapshot.val();
+					var serverDate = new Date(snapshot.val().SERVER_TIME * 1000);
+					var localDate = new Date();
+
+					console.log("Server date: " + serverDate);
+					console.log("Local  date: " + localDate);
+				}
+			});
+		}
+		*/
+
 		$scope.finishAuction = function() {
 			$scope.auctionFinished = true;
 
-			if ($scope.biddingHistory.length === 0) {
-				console.warn("Auction finished with no winner");
-			}
-
 			$scope.auctionRef.transaction(function(auction) {
 				auction.status = "FINISHED";
-				auction.winnerUserId = "nowinner";
+
+				if ($scope.biddingHistory.length > 0) {
+					auction.winnerUserId = $scope.biddingHistory[0].userId;
+				} else {
+					console.warn("Auction finished with no winner");
+					auction.winnerUserId = "nowinner";
+				}
 
 				return auction;
 			}, function(error, committed, snapshot) {
@@ -257,7 +283,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					console.log("About to Set COUNTDOWN in transaction");
 					auction.status = "COUNTDOWN";
 					console.log("Set COUNTDOWN in transaction");
-					auction.endDate = new Date().getTime() + $scope.resetSeconds * 1000 + 1250;
+					auction.endDate = Date.now() + $scope.resetSeconds * 1000 + 1250;
 					auction.winnerUserId = null;
 					auction.price = 0.01;
 
