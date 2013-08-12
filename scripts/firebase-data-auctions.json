@@ -6,8 +6,8 @@
 	    "id" : "-J-JAWUKxN4LmyfIN3Y-",
 	    "endDate" : 1375967060000,
 	    "price" : 0.01,
-	    "status": "COUNTDOWN",
-	    "COUNT_DOWN_TIME": 21000
+	    "status": "FINISHED",
+	    "COUNT_DOWN_TIME": 10000
 	  },
 	  "-J-JFo7Musxjpqvs1H-u" : {
 	    "name" : "Test Auction 1",
@@ -15,7 +15,7 @@
 	    "endDate" : 1375967060000,
 	    "price" : 0.01,
 	    "status": "STARTED",
-	    "COUNT_DOWN_TIME": 21000
+	    "COUNT_DOWN_TIME": 10000
 	  },
 	  "-J-J9pK14iFXayBDe1H5" : {
 	    "name" : "Test Auction 3",
@@ -23,21 +23,24 @@
 	    "endDate" : 1375967060000,
 	    "price" : 0.01,
 	    "status": "STARTED",
-	    "COUNT_DOWN_TIME": 21000
+	    "COUNT_DOWN_TIME": 10000
 	  }
-	},
-	"user": {
-
 	},
 	"bidding-history": {
 		"auction": {
 			"-J-JAWUKxN4LmyfIN3Y-": {
-
 			},
 			"-J-JFo7Musxjpqvs1H-u" : {
 			},
 			"-J-J9pK14iFXayBDe1H5" : {
 			}
+		}
+	},
+	"user": {
+		"nowinner": {
+			id: "nowinner",
+			name: "No Winner",
+			balance: "0"
 		}
 	}
 }

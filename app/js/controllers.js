@@ -17,7 +17,7 @@ controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scop
 		$scope.auctionsDiscoveryPromise.then(function() {
 			console.log("AuctionsDiscoverController auctionsDiscoveryPromise resolved");
 			$timeout(function() {
-				$scope.$broadcast("AUCTIONS_DISCOVERED_EVENT");	
+				$scope.$broadcast("AUCTION_INIT");
 			}, 500);
 			
 		}, function() {
@@ -28,56 +28,85 @@ controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scop
 
 controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angularFire', '$timeout', '$filter', 
 	function($rootScope, $scope, angularFire, $timeout, $filter) {
-		$scope.$on("AUCTIONS_DISCOVERED_EVENT", function() {
+		$scope.$on("AUCTION_INIT", function() {
 			$scope.init();
 		});
 
 		$scope.$on("AUCTION_FINISHED", function(event, auctionId) {
+			console.warn("AUCTION_FINISHED");
 			if ($scope.auction.id === auctionId) {
-				console.warn("Auction " + auctionId + " FINISHED!");
-				$scope.resetSeconds = 60;
-				//$scope.winnerPromise = angularFire(travelBidsFirebaseRef + "/user/" + $scope.auction.winnerUserId, $scope, 'winner', {});
-				var winnerRef = travelBidsFirebaseRef.child('user/' + $scope.auction.winnerUserId);
-				winnerRef.once('value', function(userSnapshot) {
-					$timeout(function() {
-						$scope.winner = userSnapshot.val();
-					}, 20, true);
-				});
+				console.log("Auction " + auctionId + " FINISHED!");
+				console.log(angular.toJson($scope.auction));
+				
+				$timeout(function() {
+					$scope.resetSeconds = 20;
+					
+					var winnerPromise = angularFire(travelBidsFirebaseRef + "/user/" + $scope.auction.winnerUserId, $scope, 'winner', {});
+					winnerPromise.then(function(disassociate) {
+						$scope.winnerDisassociateFn = disassociate;
+					});
+
+					if ($scope.auctionIntervalTimerId) {
+						clearInterval($scope.auctionIntervalTimerId);
+					}
+				}, 0, true);
 			}
 		});
 
-		$scope.isUserLoggedIn = function() {
-			return $rootScope.authUser && $rootScope.authUser.isLoggedIn;
-		}
+		$scope.$on('AUCTION_RESET', function(event, auctionId) {
+			console.warn('AUCTION_RESET');
 
-		$scope.isAdminLoggedIn = function() {
-			return $scope.isUserLoggedIn() && $rootScope.authUser.id == 'facebook-1334464456';
-		}
+			if ($scope.auction && $scope.auction.id === auctionId) {
+				$scope.auctionFinished = false;
 
-		$scope.isZeroOrNegativeBallance = function() {
-			return $scope.isUserLoggedIn() && $rootScope.authUser.balance <= 0;
-		}
+				$scope.auctionRef.off();
+
+				$scope.unregisterAuctionStatusWatch();
+				$scope.auctionDisassociateFn();
+				$scope.auction = null;
+				
+				$scope.winnerDisassociateFn();
+				$scope.winner = null;
+				
+				$scope.biddingHistoryRef.remove(function() {
+					$scope.biddingHistoryRef.off();
+					$scope.biddingHistoryQuery.off();
+				});
+				
+				$timeout($scope.init, 1000, true);
+			}
+		});
 
 		$scope.init = function() {
+			console.log("AUCTION_INIT");
+
 			angularFire(travelBidsFirebaseRef + "/auction/" + $scope.auctionId, $scope, 'auction', {})
-			.then(function() {
+			.then(function(disassociate) {
 				if ($scope.auction) {
+					$scope.auctionDisassociateFn = disassociate;
 					$scope.auctionRef = travelBidsFirebaseRef.child('auction/' + $scope.auction.id);
+					
 					$scope.biddingHistoryRef = travelBidsFirebaseRef.child('bidding-history/auction/' + $scope.auction.id);
 					$scope.biddingHistory = FixedQueue(10);
 					$scope.pendingBiddingHistoryEntry = {};
-
-					var biddingHistoryQuery = $scope.biddingHistoryRef.limit(10);
-					biddingHistoryQuery.on("child_added", function(bidderSnapshot) {
+					$scope.biddingHistoryQuery = $scope.biddingHistoryRef.limit(10);
+					$scope.biddingHistoryQuery.on("child_added", function(bidderSnapshot) {
 						$scope.biddingHistory.unshift(bidderSnapshot.val());	
 					});
 
-					if ($scope.auction.status != 'FINISHED') {
-						$timeout($scope.startCountdown, 200);
-					} else {
-						$scope.auctionFinished = true;
-						$rootScope.$broadcast("AUCTION_FINISHED", $scope.auction.id);
-					}
+					$scope.unregisterAuctionStatusWatch = $scope.$watch(function() {
+						return $scope.auction.status;
+					}, function(newStatus, oldStatus) {
+						console.log("oldStatus: " + oldStatus + "; newStatus: " + newStatus);
+						if (newStatus === 'FINISHED') {
+							$scope.auctionFinished = true;
+							$scope.$broadcast("AUCTION_FINISHED", $scope.auction.id);
+						} else if (oldStatus === 'FINISHED' && newStatus === 'COUNTDOWN') {
+							$scope.$broadcast("AUCTION_RESET", $scope.auction.id);	
+						} else if(newStatus != "FINISHED") {
+							$timeout($scope.startCountdown, 200);
+						}
+					}, true);
 				}
 			});
 		}
@@ -121,6 +150,13 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 
 			$scope.auctionIntervalTimerId = setInterval(function() {
 				//var start = new Date().getTime();
+				if ($scope.auction.status === 'FINISHED') {
+
+					$scope.$apply();
+
+					return;
+				}
+
 				$scope.timeLeft = $scope.calculateTimeLeft();
 				
 				if ($scope.timeLeft <= $scope.auction.COUNT_DOWN_TIME) {
@@ -141,6 +177,10 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 
 		$scope.bid = function() {
+			if (!$scope.auction) {
+				console.error("Auction not initialized!");
+			}
+
 			if ($scope.auction.status === 'FINISHED') {
 				console.error("Auction already fishished!");
 				return;
@@ -195,45 +235,46 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		$scope.finishAuction = function() {
 			$scope.auctionFinished = true;
 
+			if ($scope.biddingHistory.length === 0) {
+				console.warn("Auction finished with no winner");
+			}
+
 			$scope.auctionRef.transaction(function(auction) {
 				auction.status = "FINISHED";
-				if ($scope.biddingHistory.length === 0) {
-					$scope.biddingHistoryRef.push({'username': 'NO WINNER', 'userId': '0', 'date': Firebase.ServerValue.TIMESTAMP});
-				}
-
-				auction.winnerUserId = $scope.biddingHistory[0].userId;
+				auction.winnerUserId = "nowinner";
 
 				return auction;
-			}, function() {
-				$rootScope.$broadcast("AUCTION_FINISHED", $scope.auction.id);
+			}, function(error, committed, snapshot) {
+				if (error) {
+					console.error("Error finishing the auction!");
+					auction.status = "ERROR";
+				}
 			});
-
-			$scope.$apply();
-
-			if ($scope.auctionIntervalTimerId) {
-				clearInterval($scope.auctionIntervalTimerId);
-			}
 		}
 
 		$scope.resetTimer = function() {
 			$scope.auctionRef.transaction(function(auction) {
+					console.log("About to Set COUNTDOWN in transaction");
 					auction.status = "COUNTDOWN";
-					auction.endDate = new Date().getTime() + $scope.resetSeconds * 1000 + 300;
+					console.log("Set COUNTDOWN in transaction");
+					auction.endDate = new Date().getTime() + $scope.resetSeconds * 1000 + 1250;
 					auction.winnerUserId = null;
 					auction.price = 0.01;
 
-					$scope.biddingHistoryRef.remove(function() {
-						$scope.biddingHistory = FixedQueue(10);
-					});
-
 					return auction;
-			}, function() {
-				$scope.auctionFinished = false;
-				if ($scope.winner) {
-					$scope.winner = null;
-				}
-				$timeout($scope.startCountdown, 200);
 			});
+		}
+
+		$scope.isUserLoggedIn = function() {
+			return $rootScope.authUser && $rootScope.authUser.isLoggedIn;
+		}
+
+		$scope.isAdminLoggedIn = function() {
+			return $scope.isUserLoggedIn();// && $rootScope.authUser.id == 'facebook-1334464456';
+		}
+
+		$scope.isZeroOrNegativeBallance = function() {
+			return $scope.isUserLoggedIn() && $rootScope.authUser.balance <= 0;
 		}
 	}
 ]);
@@ -249,7 +290,7 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 			    var userChildLocation = user.provider + "-" + user.id;
 				$scope.userPromise = angularFire(travelBidsFirebaseRef + "/user/" + userChildLocation, $rootScope, 'authUser', {});
 
-				$scope.userPromise.then(function() {
+				$scope.userPromise.then(function(disassociate) {
 					if (!$rootScope.authUser || !$rootScope.authUser.id) {
 				    	$scope.registerUser(
 				    		{
@@ -269,20 +310,24 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 					} else {
 						$rootScope.authUser.isLoggedIn = true;
 						$rootScope.$broadcast('USER_LOGGS_IN');
-					}					
+					}
+
+					$scope.logout = function() {
+						console.log("Logging out user " + $rootScope.authUser.name);
+						$scope.auth.logout();
+						$rootScope.authUser.isLoggedIn = false;
+
+						$rootScope.$broadcast("USER_LOGGS_OUT", $rootScope.authUser.id);
+
+						disassociate();
+						$rootScope.authUser = null;
+					}
 				});
 		  	}
 		});
 
 		$scope.login = function(serviceProvider) {
 			$scope.auth.login(serviceProvider);
-		}
-
-		$scope.logout = function() {
-			console.log("Logging out user " + $scope.authUser.name);
-			$scope.auth.logout();
-			$rootScope.authUser.isLoggedIn = false;
-			$rootScope.$broadcast("USER_LOGGS_OUT");
 		}
 
 		$scope.registerUser = function(user, callback) {
