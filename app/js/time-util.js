@@ -57,27 +57,25 @@ TimeUtil.millisToFinalCountDownText = function(millis) {
 TimeUtil.millisToReadableCountDownText = function(millis) {
 	var date = new Date(millis);
 
-	var countDownTime = {
-		days: date.getDate() - TimeUtil.ZERO_DATE_DAYS,
-		hours: date.getHours() - TimeUtil.ZERO_DATE.HOURS,
-		minutes: date.getMinutes() - TimeUtil.ZERO_DATE.MINUTES,
-		seconds: date.getSeconds()
+	var days = date.getDate() - TimeUtil.ZERO_DATE_DAYS;
+	var	hours = date.getHours() - TimeUtil.ZERO_DATE.HOURS;
+	var minutes = date.getMinutes() - TimeUtil.ZERO_DATE.MINUTES;
+	var seconds = date.getSeconds();
+
+	if (hours < 10) {
+		hours = "0" + hours;
 	}
 
-	if (countDownTime.hours < 10) {
-		countDownTime.hours = "0" + countDownTime.hours;
+	if (minutes < 10) {
+		minutes = "0" + minutes;
 	}
 
-	if (countDownTime.minutes < 10) {
-		countDownTime.minutes = "0" + countDownTime.minutes;
+	if (seconds < 10) {
+		seconds = "0" + seconds;
 	}
 
-	if (countDownTime.seconds < 10) {
-		countDownTime.seconds = "0" + countDownTime.seconds;
-	}
-
-	return countDownTime.hours + TimeUtil.TIME_FORMAT_SEPARATOR 
-				+ countDownTime.minutes + TimeUtil.TIME_FORMAT_SEPARATOR
-				+ countDownTime.seconds;
+	return hours + TimeUtil.TIME_FORMAT_SEPARATOR 
+				+ minutes + TimeUtil.TIME_FORMAT_SEPARATOR
+				+ seconds;
 
 }

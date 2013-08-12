@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 'myApp.controllers', 'firebase']).
+angular.module('tbApp', ['tbApp.config', 'tbApp.filters', 'tbApp.services', 'tbApp.directives', 'tbApp.controllers', 'firebase']).
   config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/discover', {templateUrl: 'views/discover.html', controller: 'AuctionsDiscoverController'});
     $routeProvider.otherwise({redirectTo: '/discover'});

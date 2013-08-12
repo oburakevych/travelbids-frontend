@@ -3,13 +3,7 @@
 /* Directives */
 
 
-var directivesModule = angular.module('myApp.directives', []);
-
-directivesModule.directive('appVersion', ['version', function(version) {
-    return function(scope, elm, attrs) {
-      elm.text(version);
-    };
-}]);
+var directivesModule = angular.module('tbApp.directives', []);
 
 directivesModule.directive('tbAuction', [function() {
 	return {

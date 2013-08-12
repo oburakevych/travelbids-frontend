@@ -1,9 +1,9 @@
-<div ng-controller="LoginController">
+<div ng-controller="LoginController" ng-cloak>
 	<div ng-switch on="!authUser">
 		<div ng-switch-when="false">
 			<!-- Single button -->
 			<div class="btn-group">
-			  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+			  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
 			    {{authUser.name}} <span class="caret"></span>
 			  </button>
 			  <ul class="dropdown-menu">

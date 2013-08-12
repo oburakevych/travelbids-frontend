@@ -1,10 +1,16 @@
 'use strict';
 
 /* Services */
+var servicesModule = angular.module('tbApp.services', []);
 
-
-// Demonstrate how to register services
-// In this case it is a simple value service.
-var servicesModule = angular.module('myApp.services', []);
-  
-servicesModule.value('version', '0.1');
+servicesModule.factory('firebaseReference', ['FIREBASE_URL', function(FIREBASE_URL) {
+		var instance = new Firebase(FIREBASE_URL);
+      	return {
+      		getInstance: function() {
+      			if (!instance) {
+      				instance = new Firebase(FIREBASE_URL);
+      			}
+      			return instance;
+      		}
+      	}
+}]);

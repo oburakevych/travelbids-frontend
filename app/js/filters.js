@@ -2,7 +2,7 @@
 
 /* Filters */
 
-var filtersModule = angular.module('myApp.filters', []);
+var filtersModule = angular.module('tbApp.filters', []);
   
 filtersModule.filter('readableTime', [function() {
     return function(millisLeft) {

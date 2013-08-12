@@ -2,17 +2,11 @@
 
 /* Controllers */
 
-var controllersModule = angular.module('myApp.controllers', []);
-
-var url = 'https://travelbids.firebaseio.com';
-var travelBidsFirebaseRef = new Firebase(url);
-var COUNT_DOWN_INTERVAL = 1000;
-var AUCTION_FINISHED_CONDITION = 3 * 1000 * (-1);
-var EMPTY = "";
+var controllersModule = angular.module('tbApp.controllers', []);
   
-controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scope', 'angularFire', '$timeout', '$filter', 
-	function($rootScope, $scope, angularFire, $timeout, $filter) {
-		$scope.auctionsDiscoveryPromise = angularFire(travelBidsFirebaseRef + "/auctionlist", $scope, 'auctionlist', []);
+controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scope', 'angularFire', '$timeout', '$filter', 'firebaseReference',
+	function($rootScope, $scope, angularFire, $timeout, $filter, firebaseReference) {
+		$scope.auctionsDiscoveryPromise = angularFire(firebaseReference.getInstance() + "/auctionlist", $scope, 'auctionlist', []);
 
 		$scope.auctionsDiscoveryPromise.then(function() {
 			console.log("AuctionsDiscoverController auctionsDiscoveryPromise resolved");
@@ -26,8 +20,8 @@ controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scop
 	}
 ]);
 
-controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angularFire', '$timeout', '$filter', 
-	function($rootScope, $scope, angularFire, $timeout, $filter) {
+controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angularFire', '$timeout', '$filter', 'firebaseReference', 'COUNT_DOWN_INTERVAL', 'AUCTION_FINISHED_CONDITION',
+	function($rootScope, $scope, angularFire, $timeout, $filter, firebaseReference, COUNT_DOWN_INTERVAL, AUCTION_FINISHED_CONDITION) {
 		$scope.$on("AUCTION_INIT", function() {
 			$scope.init();
 		});
@@ -41,7 +35,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				$timeout(function() {
 					$scope.resetSeconds = 20;
 					
-					var winnerPromise = angularFire(travelBidsFirebaseRef + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
+					var winnerPromise = angularFire(firebaseReference.getInstance() + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
 					winnerPromise.then(function(disassociate) {
 						$scope.winnerDisassociateFn = disassociate;
 					});
@@ -80,14 +74,14 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		$scope.init = function() {
 			console.log("AUCTION_INIT");
 
-			angularFire(travelBidsFirebaseRef + "/auction/" + $scope.auctionId, $scope, 'auction', {})
+			angularFire(firebaseReference.getInstance() + "/auction/" + $scope.auctionId, $scope, 'auction', {})
 			.then(function(disassociate) {
 				if ($scope.auction) {
 					$scope.auctionDisassociateFn = disassociate;
-					$scope.auctionRef = travelBidsFirebaseRef.child('auction/' + $scope.auction.id);
+					$scope.auctionRef = firebaseReference.getInstance().child('auction/' + $scope.auction.id);
 					
-					$scope.biddingHistoryRef = travelBidsFirebaseRef.child('bidding-history/auction/' + $scope.auction.id);
-					$scope.biddingHistory = FixedQueue(10);
+					$scope.biddingHistoryRef = firebaseReference.getInstance().child('bidding-history/auction/' + $scope.auction.id);
+					$scope.biddingHistory = FixedQueue(1);
 					$scope.pendingBiddingHistoryEntry = {};
 					$scope.biddingHistoryQuery = $scope.biddingHistoryRef.limit(10);
 					$scope.biddingHistoryQuery.on("child_added", function(bidderSnapshot) {
@@ -136,13 +130,13 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 						displayClass = "count-verify";
 						break;
 					default:
-						displayClass = EMPTY;
+						displayClass = "";
 				}
 
 				return displayClass;
 			}
 
-			return EMPTY;
+			return "";
 		}
 
 		$scope.startCountdown = function() {
@@ -236,7 +230,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 			console.log("getTimeDiff");
 
 			if ($rootScope.authUser) { 
-				$scope.authUserRef = travelBidsFirebaseRef.child('user/' + $rootScope.authUser.id);
+				$scope.authUserRef = firebaseReference.getInstance().child('user/' + $rootScope.authUser.id);
 
 				$scope.authUserRef.transaction(function(user) {
 					user.SERVER_TIME = Firebase.ServerValue.TIMESTAMP;
@@ -303,21 +297,21 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 
 		$scope.isZeroOrNegativeBallance = function() {
-			return $scope.isUserLoggedIn() && $rootScope.authUser.balance <= 0;
+			return !$scope.isUserLoggedIn() || $rootScope.authUser.balance <= 0;
 		}
 	}
 ]);
 
-controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angularFire', 'angularFireAuth','$timeout', '$filter', 
-	function($rootScope, $scope, angularFire, angularFireAuth, $timeout, $filter) {
-		$scope.auth = new FirebaseSimpleLogin(travelBidsFirebaseRef, function(error, user) {
+controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angularFire', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
+	function($rootScope, $scope, angularFire, angularFireAuth, $timeout, $filter, firebaseReference) {
+		$scope.auth = new FirebaseSimpleLogin(firebaseReference.getInstance(), function(error, user) {
 			if (error) {
 				console.error("Error logging in: " + error);
 			} else if(user) {
 			    console.log(user.first_name + " " + user.last_name);
 
 			    var userChildLocation = user.provider + "-" + user.id;
-				$scope.userPromise = angularFire(travelBidsFirebaseRef + "/user/" + userChildLocation, $rootScope, 'authUser', {});
+				$scope.userPromise = angularFire(firebaseReference.getInstance() + "/user/" + userChildLocation, $rootScope, 'authUser', {});
 
 				$scope.userPromise.then(function(disassociate) {
 					if (!$rootScope.authUser || !$rootScope.authUser.id) {
@@ -329,7 +323,7 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 								gender: user.gender,
 								created: Firebase.ServerValue.TIMESTAMP,
 								provider: user.provider,
-								balance: 10.00,
+								balance: 100.00,
 								isLoggedIn: true
 							}, function() {
 								console.log("User " + $rootScope.authUser.name + " has been registered successfully!");
@@ -361,7 +355,7 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 
 		$scope.registerUser = function(user, callback) {
 			if (user) {
-				travelBidsFirebaseRef.child("user/" + user.id).set(user, callback);
+				firebaseReference.getInstance().child("user/" + user.id).set(user, callback);
 			}
 		}
 	}

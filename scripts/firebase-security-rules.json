@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "user": {
+      "$user": {
+        ".read":  "auth != null && (!data.exists() || (auth.provider + '-' + auth.id) == data.child('id').val() || data.child('id').val() == 'nowinner')",
+        ".write": "auth != null && (!data.exists() || (auth.provider + '-' + auth.id) == data.child('id').val())",
+        ".validate": "!data.exists() || newData.child('balance').val() == data.child('balance').val() || newData.child('balance').val() == data.child('balance').val() - 1",
+
+      "name": {
+          ".read": true,
+          ".write": "auth != null && (!data.exists() || (auth.provider + '-' + auth.id) == data.child('id').val())"
+        }
+      }
+    },
+    "auctionlist": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "auction": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "bidding-history" : {
+      "auction": {
+        "$bid": {
+          ".read": true,
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}
