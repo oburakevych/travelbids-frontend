@@ -41,6 +41,11 @@
   height: 80px;
   width: 100%;
   z-index: 10000;
+
+  .logo {
+    padding: 0 12px;
+    color: white;
+  }
 }
 
 .content {
