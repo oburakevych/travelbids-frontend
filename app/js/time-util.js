@@ -39,13 +39,16 @@ TimeUtil.millisToFinalCountDownText = function(millis) {
 				readableText = "FINAL CALL";
 				break;
 			case -3:
-				readableText = "FINISHED";
+				readableText = "VERIFYING";
 				break;
 			case -4:
+				readableText = "VERIFYING";
+				break;
+			case -5:
 				readableText = "FINISHED";
 				break;
 			default: 
-				readableText = seconds + TimeUtil.SECONDS_APPENDING_TEXT;
+				readableText = "FINISHED";
 		}
 	} else {
 		readableText = seconds + TimeUtil.SECONDS_APPENDING_TEXT;

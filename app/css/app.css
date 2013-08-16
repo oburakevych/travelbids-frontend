@@ -72,24 +72,31 @@
   background-color: rgba(240, 240, 200, 1);
 }
 
-.count-once {
-  background-color: blue;
+.bidder-winner {
+  text-align: center;
+  font-size: 24px;
+  color: white;
+  background-color: rgba(0, 0, 0, 1);
 }
 
-.count-twice {
-  background-color: green;
-}
+.count {
+  float: left;
 
-.count-final {
-  background-color: red;
-}
+  &.once {
+    background-color: blue;  
+  }
 
-.count-verify {
-  //background-color: red;
-}
+  &.twice {
+    background-color: green;  
+  }
 
-.count-defaut {
-  background-color: navy;
+  &.final {
+    background-color: red;  
+  }
+
+  &.verify {
+    background-color: navy;
+  }
 }
 
 // Animation

@@ -20,8 +20,8 @@ controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scop
 	}
 ]);
 
-controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angularFire', '$timeout', '$filter', 'firebaseReference', 'COUNT_DOWN_INTERVAL', 'AUCTION_FINISHED_CONDITION',
-	function($rootScope, $scope, angularFire, $timeout, $filter, firebaseReference, COUNT_DOWN_INTERVAL, AUCTION_FINISHED_CONDITION) {
+controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angularFire', '$timeout', '$filter', 'firebaseReference', 'COUNT_DOWN_INTERVAL', 'AUCTION_VERIFY_CONDITION', 'AUCTION_FINISHED_CONDITION',
+	function($rootScope, $scope, angularFire, $timeout, $filter, firebaseReference, COUNT_DOWN_INTERVAL, AUCTION_VERIFY_CONDITION, AUCTION_FINISHED_CONDITION) {
 		$scope.$on("AUCTION_INIT", function() {
 			$scope.init();
 		});
@@ -88,6 +88,12 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 						$scope.biddingHistory.unshift(bidderSnapshot.val());	
 					});
 
+					var offsetRef = firebaseReference.getInstance().child("/.info/serverTimeOffset");
+					offsetRef.on("value", function(snap) {
+						$scope.serverOffsetMillis = snap.val();
+						console.log("Offset: " + $scope.serverOffsetMillis);
+					});
+
 					$scope.unregisterAuctionStatusWatch = $scope.$watch(function() {
 						return $scope.auction.status;
 					}, function(newStatus, oldStatus) {
@@ -97,7 +103,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 							$scope.$broadcast("AUCTION_FINISHED", $scope.auction.id);
 						} else if (oldStatus === 'FINISHED' && newStatus === 'COUNTDOWN') {
 							$scope.$broadcast("AUCTION_RESET", $scope.auction.id);	
-						} else if(newStatus != "FINISHED") {
+						} else if(newStatus !== "FINISHED") {
 							$timeout($scope.startCountdown, 200);
 						}
 					}, true);
@@ -106,11 +112,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 		
 		$scope.calculateTimeLeft = function() {
-			if ($scope.auction) {
-				var timeLeftMillis = $scope.auction.endDate - Date.now();
-
-				return timeLeftMillis;
-			}
+			return $scope.auction.endDate - Date.now() - $scope.serverOffsetMillis;;
 		}
 
 		$scope.displayCount = function(millisLeft) {
@@ -118,19 +120,25 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				var displayClass = null;
 				switch(TimeUtil.millisToSeconds(millisLeft)) {
 					case 0:
-						displayClass = "count-once";
+						displayClass = "count once";
 						break;
 					case -1:
-						displayClass = "count-twice";
+						displayClass = "count twice";
 						break;
 					case -2:
-						displayClass = "count-final";
+						displayClass = "count final";
 						break;
 					case -3:
-						displayClass = "count-verify";
+						displayClass = "count verify";
+						break;
+					case -4:
+						displayClass = "count verify";
+						break;
+					case -5:
+						displayClass = "count verify";
 						break;
 					default:
-						displayClass = "";
+						displayClass = "count";
 				}
 
 				return displayClass;
@@ -139,13 +147,20 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 			return "";
 		}
 
+		$scope.getBidBtnState = function() {
+			if ($scope.auctionVerify || $scope.auctionFinished) {
+				return "btn-disabled";
+			} 
+
+			return "btn-primary";
+		}
+
 		$scope.startCountdown = function() {
 			$scope.timeLeft = $scope.calculateTimeLeft();
 
 			$scope.auctionIntervalTimerId = setInterval(function() {
 				//var start = Date.now();
 				if ($scope.auction.status === 'FINISHED') {
-
 					$scope.$apply();
 
 					return;
@@ -154,13 +169,17 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				$scope.timeLeft = $scope.calculateTimeLeft();
 				
 				if ($scope.timeLeft <= $scope.auction.COUNT_DOWN_TIME) {
-					if ($scope.timeLeft < AUCTION_FINISHED_CONDITION) {
+					$scope.auctionVerify = false;
+
+					if ($scope.timeLeft <= (AUCTION_VERIFY_CONDITION + 1000) && $scope.timeLeft > AUCTION_FINISHED_CONDITION) {
+						if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_VERIFY_CONDITION)) {
+							$scope.auctionVerify = true;
+						}
+					} else if ($scope.timeLeft <= AUCTION_FINISHED_CONDITION) {
 						if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_FINISHED_CONDITION)) {
 							$scope.finishAuction();
 						}
-					}
-
-					if ($scope.auction.status !== 'COUNTDOWN') {
+					} else if ($scope.auction.status !== 'COUNTDOWN') {
 						$scope.auction.status = 'COUNTDOWN';
 					}
 				}
@@ -171,87 +190,69 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 
 		$scope.bid = function() {
-			if (!$scope.auction) {
-				console.error("Auction not initialized!");
-			}
-
-			if ($scope.auction.status === 'FINISHED') {
-				console.error("Auction already fishished!");
+			if(!$scope.isBidAuthorized()) {
 				return;
 			}
 
-			if ($rootScope.authUser) {
-				if ($scope.isZeroOrNegativeBallance()) {
-					console.error("No sufficient funds to bid! Account balance: " + $rootScope.authUser.balance);
-					return;
+			$scope.auctionRef.transaction(function(auction) {
+				var auctionEndDate = $scope.getNewEndDate();
+
+				if (auctionEndDate) {
+					auction.endDate = auctionEndDate;
 				}
 
-				$scope.auctionRef.transaction(function(auction) {
-					var auctionEndDate = $scope.getNewEndDate();
+				auction.price = Math.round((auction.price + 0.01) * 100)/100;
 
-					if (auctionEndDate) {
-						auction.endDate = auctionEndDate;
-					}
+				$rootScope.authUser.balance -= 1.0;
+				$scope.biddingHistoryEntry = $scope.biddingHistoryRef.push({'username': $rootScope.authUser.name, 'userId': $rootScope.authUser.id, 'date': Firebase.ServerValue.TIMESTAMP});
 
-					auction.price = Math.round((auction.price + 0.01) * 100)/100;
+				return auction;
+			}, function(error, committed, snapshot) {
+				if (error) {
+					console.error("Error increasing auction price: " + error);
+					$rootScope.authUser.balance += 1.0; // Roll back account balance
+					$scope.biddingHistoryEntry.remove();
+				}
 
-					$rootScope.authUser.balance -= 1.0;
-					$scope.biddingHistoryEntry = $scope.biddingHistoryRef.push({'username': $rootScope.authUser.name, 'userId': $rootScope.authUser.id, 'date': Firebase.ServerValue.TIMESTAMP});
+				if (committed) {
+					
+				}
+			});
+		}
 
-					return auction;
-				}, function(error, committed, snapshot) {
-					if (error) {
-						console.error("Error increasing auction price: " + error);
-						$rootScope.authUser.balance += 1.0; // Roll back account balance
-						$scope.biddingHistoryEntry.remove();
-					}
-
-					if (committed) {
-						
-					}
-				});
-				
+		$scope.isBidAuthorized = function() {
+			if ($scope.auctionVerify) {
+				console.warn("Auction winner is being verified, bidding disabled!");
+				return false;
 			}
+
+			if ($scope.auctionFinished) {
+				console.warn("Auction already fishished!");
+				return false;
+			}
+
+			if (!$scope.auction) {
+				console.error("Auction not initialized!");
+				return false;
+			}
+
+			if ($scope.isZeroOrNegativeBallance()) {
+				console.error("No sufficient funds to bid! Account balance: " + $rootScope.authUser.balance);
+				return false;
+			}
+
+			return true;
 		}
 
 		$scope.getNewEndDate = function() {
-			var nowMillis = Date.now();
-			var millis = nowMillis + $scope.auction.COUNT_DOWN_TIME;
+			var millis = Date.now() + $scope.auction.COUNT_DOWN_TIME + $scope.serverOffsetMillis + 20;
 
 			if(millis < $scope.auction.endDate) {
 				return $scope.auction.endDate;
 			}
 
-			return millis + 100;
+			return millis;
 		}
-
-		/*
-		$scope.getTimeDiff = function() {
-			console.log("getTimeDiff");
-
-			if ($rootScope.authUser) { 
-				$scope.authUserRef = firebaseReference.getInstance().child('user/' + $rootScope.authUser.id);
-
-				$scope.authUserRef.transaction(function(user) {
-					user.SERVER_TIME = Firebase.ServerValue.TIMESTAMP;
-					return user;
-				}, function(error, committed, snapshot) {
-					if (error) {
-						console.wrror("Error getting the SERVER_TIME");
-					}
-
-					if (committed) {
-						var serv = snapshot.val();
-						var serverDate = new Date(snapshot.val().SERVER_TIME * 1000);
-						var localDate = new Date();
-
-						console.log("Server date: " + serverDate);
-						console.log("Local  date: " + localDate);
-					}
-				});
-			}
-		}
-		*/
 
 		$scope.finishAuction = function() {
 			$scope.auctionFinished = true;
@@ -280,7 +281,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					console.log("About to Set COUNTDOWN in transaction");
 					auction.status = "COUNTDOWN";
 					console.log("Set COUNTDOWN in transaction");
-					auction.endDate = Date.now() + $scope.resetSeconds * 1000 + 1250;
+					auction.endDate = Date.now() + $scope.resetSeconds * 1000 + 1220;
 					auction.winnerUserId = null;
 					auction.price = 0.01;
 
@@ -297,7 +298,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 
 		$scope.isZeroOrNegativeBallance = function() {
-			return !$scope.isUserLoggedIn() || $rootScope.authUser.balance <= 0;
+			return $scope.isUserLoggedIn() && $rootScope.authUser.balance <= 0;
 		}
 	}
 ]);
