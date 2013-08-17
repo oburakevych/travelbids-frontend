@@ -20,7 +20,7 @@
           </p>
 
           <p ng-hide="auctionVerify || auctionFinished || auction.status == 'FINISHED'">
-            <button ng-show="!isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn btn-lg" ng-click="bid()">Place Bid</button>
+            <button ng-show="isUserLoggedIn() && !isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn btn-lg" ng-click="bid()">Place Bid</button>
             <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
             <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
           </p>

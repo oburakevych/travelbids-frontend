@@ -299,7 +299,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 
 		$scope.isZeroOrNegativeBallance = function() {
-			return $scope.isUserLoggedIn() && $rootScope.authUser.balance <= 0;
+			return $rootScope.authUser && $rootScope.authUser.balance <= 0;
 		}
 	}
 ]);
