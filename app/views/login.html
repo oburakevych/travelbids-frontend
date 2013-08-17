@@ -3,7 +3,7 @@
 		<div ng-switch-when="false">
 			<!-- Single button -->
 			<div class="btn-group">
-			  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+			  <button type="button" class="btn btn-link navbar-btn dropdown-toggle" data-toggle="dropdown">
 			    {{authUser.name}} <span class="caret"></span>
 			  </button>
 			  <ul class="dropdown-menu">
@@ -13,7 +13,7 @@
 		</div>
 
 		<div ng-switch-default>
-			<button class="btn btn-primary" ng-click="login('facebook')">Sign In</button>
+			<button class="btn navbar-btn btn-primary" ng-click="login('facebook')">Sign in</button>
 		</div>
 	</div>
 </div>

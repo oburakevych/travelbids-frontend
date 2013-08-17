@@ -21,3 +21,10 @@ directivesModule.directive('tbLogin', [function() {
 		templateUrl: 'views/login.html'
 	};
 }]);
+
+directivesModule.directive('tbUserBalance', [function() {
+	return {
+		restrict: 'A, E',
+		templateUrl: 'views/user-balance.html'
+	};
+}]);

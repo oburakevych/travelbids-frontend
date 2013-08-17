@@ -3,19 +3,16 @@
 <head>
   <meta charset="utf-8">
   <title>Travel Bids</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css"/>
-
+  <link rel="stylesheet" href="css/bootstrap.css"/>
+  <link rel="stylesheet" href="css/boot-business.css"/>
   <link rel="stylesheet/less" href="css/app.css"/>
 </head>
 <body>
   <header ng-include="'views/header.html'" class="header"></header>
 
-  <section class="row content">
-    <div class="col-lg-1 left-menu"></div>
-    <div class="col-lg-10" ng-view></div>
-    <div class="col-lg-1 right-menu"></div>
+  <section class="content">
+    <div ng-view></div>
   </section>
-  
 
   <!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>

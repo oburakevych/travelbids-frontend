@@ -1,36 +1,33 @@
 <div ng-controller="AuctionController">
-  <div class="row">
-    <div class="col-lg-8">
-      <div class="thumbnail">
-        <img ng-src="http://www.flightcentre.ca/images/info_headers/giftcards.jpg" alt="Gift Card">
-        <div class="caption">
-            <h3>{{auction.name}}</h3>
-            <p>Enjoy travelling with Flight Center</p>
-            <p ng-hide="auctionFinished">
-                <h3>
-                  <img src="img/ajax_loader_red_32.gif" ng-show="auctionVerify" alt="Verify auction status">
-                  <span ng-class="pull-left">{{timeLeft | readableTime}}</span>
-                  <span class="pull-right">{{auction.price | currency}}</span>
-                </h3>
-            </p>
-            <p>
-              <ul class="nav nav-pills nav-stacked">
-                  <li ng-show="winner" class="bidder-winner"><a href="#">Winner: {{winner}}</a></li>
-                  <li ng-hide="winner" ng-repeat="bidder in biddingHistory" class="bidder-{{$index}}"><a href="#">Winning: {{bidder.username}}</a></li>
-              </ul>
-            </p>
+    <div class="thumbnail">
+      <img ng-src="img/giftcards.png" alt="Gift Card">
+      <div class="caption">
+          <h3>{{auction.name}}</h3>
+          <p>Enjoy travelling with Flight Center</p>
+          <p>
+              <h3>
+                <img src="img/ajax_loader_red_32.gif" ng-show="auctionVerify" alt="Verify auction status">
+                <span ng-hide="auctionFinished">{{timeLeft | readableTime}}</span>
+                <span ng-show="auctionFinished">FINISHED</span>
+                <span class="pull-right">{{auction.price | currency}}</span>
+              </h3>
+          </p>
+          <p>
+            <ul class="nav nav-pills nav-stacked">
+                <li ng-show="winner" class="bidder-winner"><a href="#">Winner: {{winner}}</a></li>
+                <li ng-hide="winner" ng-repeat="bidder in biddingHistory" class="bidder-{{$index}}"><a href="#">Winning: {{bidder.username}}</a></li>
+            </ul>
+          </p>
 
-            <p ng-hide="auctionFinished || auction.status == 'FINISHED'">
-              <button ng-show="!isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn" ng-click="bid()">Place Bid</button>
-              <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
-              <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
-            </p>
-            <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED' || auction.status == 'STARTED')">
-              <button ng-click="resetTimer()">Reset Timer</button>
-              <input type="number" ng-model="resetSeconds"/>
-            </p>
-        </div>
+          <p ng-hide="auctionVerify || auctionFinished || auction.status == 'FINISHED'">
+            <button ng-show="!isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn" ng-click="bid()">Place Bid</button>
+            <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
+            <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
+          </p>
+          <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED' || auction.status == 'STARTED')">
+            <button ng-click="resetTimer()">Reset Timer</button>
+            <input type="number" ng-model="resetSeconds"/>
+          </p>
       </div>
     </div>
-  </div>
 </div>

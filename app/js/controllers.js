@@ -66,6 +66,8 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					$scope.biddingHistoryRef.off();
 					$scope.biddingHistoryQuery.off();
 				});
+
+				$scope.offsetRef.off();
 				
 				$timeout($scope.init, 1000, true);
 			}
@@ -74,11 +76,10 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		$scope.init = function() {
 			console.log("AUCTION_INIT");
 
-			angularFire(firebaseReference.getInstance() + "/auction/" + $scope.auctionId, $scope, 'auction', {})
-			.then(function(disassociate) {
-				if ($scope.auction) {
+			$scope.auctionRef = firebaseReference.getInstance().child("/auction/" + $scope.auctionId);
+			angularFire($scope.auctionRef, $scope, 'auction', {})
+				.then(function(disassociate) {
 					$scope.auctionDisassociateFn = disassociate;
-					$scope.auctionRef = firebaseReference.getInstance().child('auction/' + $scope.auction.id);
 					
 					$scope.biddingHistoryRef = firebaseReference.getInstance().child('bidding-history/auction/' + $scope.auction.id);
 					$scope.biddingHistory = FixedQueue(1);
@@ -88,8 +89,8 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 						$scope.biddingHistory.unshift(bidderSnapshot.val());	
 					});
 
-					var offsetRef = firebaseReference.getInstance().child("/.info/serverTimeOffset");
-					offsetRef.on("value", function(snap) {
+					$scope.offsetRef = firebaseReference.getInstance().child("/.info/serverTimeOffset");
+					$scope.offsetRef.on("value", function(snap) {
 						$scope.serverOffsetMillis = snap.val();
 						console.log("Offset: " + $scope.serverOffsetMillis);
 					});
@@ -107,8 +108,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 							$timeout($scope.startCountdown, 200);
 						}
 					}, true);
-				}
-			});
+				});
 		}
 		
 		$scope.calculateTimeLeft = function() {
@@ -255,6 +255,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 
 		$scope.finishAuction = function() {
+			$scope.auctionVerify = false;
 			$scope.auctionFinished = true;
 
 			$scope.auctionRef.transaction(function(auction) {
@@ -281,9 +282,9 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					console.log("About to Set COUNTDOWN in transaction");
 					auction.status = "COUNTDOWN";
 					console.log("Set COUNTDOWN in transaction");
-					auction.endDate = Date.now() + $scope.resetSeconds * 1000 + 1220;
+					auction.endDate = Date.now() + $scope.serverOffsetMillis + $scope.resetSeconds * 1000 + 1220;
 					auction.winnerUserId = null;
-					auction.price = 0.01;
+					auction.price = 1.00;
 
 					return auction;
 			});
@@ -302,6 +303,12 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 		}
 	}
 ]);
+
+controllersModule.controller('SignupController', ['$rootScope' ,'$scope', 'angularFire', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
+	function($rootScope, $scope, angularFire, angularFireAuth, $timeout, $filter, firebaseReference) {
+	}
+]);
+
 
 controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angularFire', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
 	function($rootScope, $scope, angularFire, angularFireAuth, $timeout, $filter, firebaseReference) {
