@@ -1,8 +1,9 @@
 
 <section>
 	<div class="discovered-auctions row">
-	  <div ng-repeat="id in auctionlist" class="col-lg-6">
-	  	<tb-auction tb-auction-id="{{id}}">
-	  </div>
+		<div class="col-lg-1"></div>
+		<div ng-repeat="id in auctionlist" class="col-lg-5">
+			<tb-auction tb-auction-id="{{id}}">
+		</div>
 	</div>
 </section>

@@ -20,11 +20,11 @@
           </p>
 
           <p ng-hide="auctionVerify || auctionFinished || auction.status == 'FINISHED'">
-            <button ng-show="!isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn" ng-click="bid()">Place Bid</button>
+            <button ng-show="!isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn btn-lg" ng-click="bid()">Place Bid</button>
             <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
             <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
           </p>
-          <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED' || auction.status == 'STARTED')">
+          <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED')">
             <button ng-click="resetTimer()">Reset Timer</button>
             <input type="number" ng-model="resetSeconds"/>
           </p>

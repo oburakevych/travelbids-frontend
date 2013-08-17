@@ -31,7 +31,7 @@
 
 .header {
   .navbar {
-    min-height: 60px;
+    min-height: 64px;
     background: transparent url('../img/noise.png') repeat; /*IE fix*/
     background: rgba(0, 0, 0, 0.70) url('../img/noise.png') repeat;
   }
@@ -43,7 +43,7 @@
 }
 
 .content {
-  //margin-top: 120px;
+  margin-top: 88px;
 }
 
 .discovered-auctions {
