@@ -323,17 +323,26 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 
 				$scope.userPromise.then(function(disassociate) {
 					if (!$rootScope.authUser || !$rootScope.authUser.id) {
-				    	$scope.registerUser(
-				    		{
-								id: userChildLocation,
-								name: user.name,
-								email: user.emails[0],
-								gender: user.gender,
-								created: Firebase.ServerValue.TIMESTAMP,
-								provider: user.provider,
-								balance: 100.00,
-								isLoggedIn: true
-							}, function() {
+						var tbUser = {
+							id: userChildLocation,
+							name: user.name,
+							created: Firebase.ServerValue.TIMESTAMP,
+							provider: user.provider,
+							balance: 100.00,
+							isLoggedIn: true							
+						}
+
+						if (user.email) {
+							tbUser.email = user.email;
+						} else if (user.emails) {
+							tbUser.email = user.emails[0];
+						}
+
+						if (user.gender) {
+							tbUser.gender = user.gender;
+						}
+
+				    	$scope.registerUser(tbUser, function() {
 								console.log("User " + $rootScope.authUser.name + " has been registered successfully!");
 								$rootScope.$broadcast('USER_LOGGS_IN');
 							}
@@ -357,8 +366,11 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 		  	}
 		});
 
-		$scope.login = function(serviceProvider) {
-			$scope.auth.login(serviceProvider);
+		$scope.login = function(serviceProvider, permissions) {
+			$scope.auth.login(serviceProvider, {
+  				rememberMe: true,
+  				scope: permissions
+			});
 		}
 
 		$scope.registerUser = function(user, callback) {

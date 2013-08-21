@@ -13,7 +13,29 @@
 		</div>
 
 		<div ng-switch-default>
-			<button class="btn navbar-btn btn-primary" ng-click="login('facebook')">Sign in</button>
+			<div class="btn-group">
+			  <button type="button" class="btn btn-large navbar-btn btn-primary dropdown-toggle" data-toggle="dropdown">SignIn <span class="caret"></button>
+			  <ul class="dropdown-menu">
+            	<li>
+              		<a ng-click="login('facebook', 'email')">
+                		<i class="icon-facebook icon-large"></i>
+                		Signin with Facebook
+              		</a>
+            	</li>
+				<li>
+              		<a ng-click="login('twitter')">
+                		<i class="icon-twitter icon-large"></i>
+                		Signin with Twitter
+              		</a>
+            	</li>
+            	<li>
+              		<a ng-click="login('github', 'user:email')">
+                		<i class="icon-github icon-large"></i>
+                		Signin with Github
+              		</a>
+            	</li>
+			  </ul>
+			</div>	
 		</div>
 	</div>
 </div>

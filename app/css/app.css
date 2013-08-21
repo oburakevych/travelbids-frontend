@@ -40,6 +40,14 @@
     font-size: 24px;
     color: white;
   }
+
+  .lastitem {
+    width: 100px;
+  }
+
+  a {
+    cursor: pointer;
+  }
 }
 
 .content {
