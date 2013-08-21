@@ -34,6 +34,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				
 				$timeout(function() {
 					$scope.resetSeconds = 20;
+					$scope.auctionVerify = false;
 					
 					var winnerPromise = angularFire(firebaseReference.getInstance() + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
 					winnerPromise.then(function(disassociate) {
