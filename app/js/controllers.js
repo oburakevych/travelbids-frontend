@@ -159,33 +159,33 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 			$scope.timeLeft = $scope.calculateTimeLeft();
 
 			$scope.auctionIntervalTimerId = setInterval(function() {
-				//var start = Date.now();
-				if ($scope.auction.status === 'FINISHED') {
-					$scope.$apply();
-
-					return;
-				}
-
-				$scope.timeLeft = $scope.calculateTimeLeft();
-				
-				if ($scope.timeLeft <= $scope.auction.COUNT_DOWN_TIME) {
-					$scope.auctionVerify = false;
-
-					if ($scope.timeLeft <= (AUCTION_VERIFY_CONDITION + 1000) && $scope.timeLeft > AUCTION_FINISHED_CONDITION) {
-						if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_VERIFY_CONDITION)) {
-							$scope.auctionVerify = true;
-						}
-					} else if ($scope.timeLeft <= AUCTION_FINISHED_CONDITION) {
-						if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_FINISHED_CONDITION)) {
-							$scope.finishAuction();
-						}
-					} else if ($scope.auction.status !== 'COUNTDOWN') {
-						$scope.auction.status = 'COUNTDOWN';
+				$scope.$apply(function() {
+					//var start = Date.now();
+					if ($scope.auction.status === 'FINISHED') {
+						return;
 					}
-				}
 
-				$scope.$apply();
-				//console.log("Time to calculate: " + (Date.now() - start));
+					$scope.timeLeft = $scope.calculateTimeLeft();
+					
+					if ($scope.timeLeft <= $scope.auction.COUNT_DOWN_TIME) {
+						$scope.auctionVerify = false;
+
+						if ($scope.timeLeft <= (AUCTION_VERIFY_CONDITION + 1000) && $scope.timeLeft > AUCTION_FINISHED_CONDITION) {
+							if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_VERIFY_CONDITION)) {
+								$scope.auctionVerify = true;
+							}
+						} else if ($scope.timeLeft <= AUCTION_FINISHED_CONDITION) {
+							if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_FINISHED_CONDITION)) {
+								$scope.finishAuction();
+							}
+						} else if ($scope.auction.status !== 'COUNTDOWN') {
+							$scope.auction.status = 'COUNTDOWN';
+						}
+					}
+
+					//console.log("Time to calculate: " + (Date.now() - start));
+				});
+				
 			}, COUNT_DOWN_INTERVAL);
 		}
 
