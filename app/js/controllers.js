@@ -86,7 +86,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					$scope.pendingBiddingHistoryEntry = {};
 					$scope.biddingHistoryQuery = $scope.biddingHistoryRef.limit(10);
 					$scope.biddingHistoryQuery.on("child_added", function(bidderSnapshot) {
-						$scope.biddingHistory.unshift(bidderSnapshot.val());	
+						$scope.biddingHistory.unshift(bidderSnapshot.val());
 					});
 
 					$scope.offsetRef = firebaseReference.getInstance().child("/.info/serverTimeOffset");

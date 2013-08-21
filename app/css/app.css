@@ -70,6 +70,11 @@
   
 }
 
+.timer {
+  height: 32px;
+  overflow: hidden;
+}
+
 .count {
   float: left;
 
@@ -88,6 +93,10 @@
   &.verify {
     background-color: navy;
   }
+}
+
+.control-buttons {
+  min-height: 70px;
 }
 
 // Animation

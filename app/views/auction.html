@@ -1,11 +1,11 @@
 <div ng-controller="AuctionController">
     <div class="thumbnail">
-      <img ng-src="img/giftcards.png" alt="Gift Card">
+      <img ng-src="{{auction.image}}" alt="Gift Card">
       <div class="caption">
           <h3>{{auction.name}}</h3>
           <p>Enjoy travelling with Flight Center</p>
           <p>
-              <h3>
+              <h3 class="timer">
                 <img src="img/ajax_loader_red_32.gif" ng-show="auctionVerify" alt="Verify auction status">
                 <span ng-hide="auctionFinished">{{timeLeft | readableTime}}</span>
                 <span ng-show="auctionFinished">FINISHED</span>
@@ -19,15 +19,17 @@
             </ul>
           </p>
 
-          <p ng-hide="auctionVerify || auctionFinished || auction.status == 'FINISHED'">
-            <button ng-show="isUserLoggedIn() && !isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn btn-lg" ng-click="bid()">Place Bid</button>
-            <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
-            <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
-          </p>
-          <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED')">
-            <button ng-click="resetTimer()">Reset Timer</button>
-            <input type="number" ng-model="resetSeconds"/>
-          </p>
+          <div class="control-buttons">
+            <p ng-hide="auctionVerify || auctionFinished || auction.status == 'FINISHED'">
+              <button ng-show="isUserLoggedIn() && !isZeroOrNegativeBallance()" ng-class="getBidBtnState()" class="btn btn-lg" ng-click="bid()">Place Bid</button>
+              <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
+              <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
+            </p>
+            <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED')">
+              <button ng-click="resetTimer()">Reset Timer</button>
+              <input type="number" ng-model="resetSeconds"/>
+            </p>
+          </div>
       </div>
     </div>
 </div>
