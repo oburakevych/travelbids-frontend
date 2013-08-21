@@ -100,6 +100,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					}, function(newStatus, oldStatus) {
 						console.log("oldStatus: " + oldStatus + "; newStatus: " + newStatus);
 						if (newStatus === 'FINISHED') {
+							$scope.auctionVerify = false;
 							$scope.auctionFinished = true;
 							$scope.$broadcast("AUCTION_FINISHED", $scope.auction.id);
 						} else if (oldStatus === 'FINISHED' && newStatus === 'COUNTDOWN') {
@@ -163,6 +164,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					//var start = Date.now();
 					if ($scope.auction.status === 'FINISHED') {
 						$scope.auctionVerify = false;
+						$scope.auctionFinished = true;
 						return;
 					}
 
