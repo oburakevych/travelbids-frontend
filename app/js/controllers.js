@@ -162,6 +162,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				$scope.$apply(function() {
 					//var start = Date.now();
 					if ($scope.auction.status === 'FINISHED') {
+						$scope.auctionVerify = false;
 						return;
 					}
 
