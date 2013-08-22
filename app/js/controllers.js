@@ -172,8 +172,6 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 					$scope.timeLeft = $scope.calculateTimeLeft();
 					
 					if ($scope.timeLeft <= $scope.auction.COUNT_DOWN_TIME) {
-						$scope.auctionVerify = false;
-
 						if ($scope.timeLeft <= (AUCTION_VERIFY_CONDITION + 1000) && $scope.timeLeft > AUCTION_FINISHED_CONDITION) {
 							if (TimeUtil.millisToSeconds($scope.timeLeft) <= TimeUtil.millisToSeconds(AUCTION_VERIFY_CONDITION)) {
 								$scope.auctionVerify = true;
