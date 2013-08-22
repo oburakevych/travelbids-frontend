@@ -40,6 +40,11 @@
     font-size: 24px;
     color: white;
   }
+  .demo {
+    color: yellow;
+    font-size: 14px;
+    font-family: cursive;
+  }
 
   .lastitem {
     width: 100px;
