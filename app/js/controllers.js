@@ -336,7 +336,7 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 							name: user.name,
 							created: Firebase.ServerValue.TIMESTAMP,
 							provider: user.provider,
-							balance: 100.00,
+							balance: 20.00,
 							isLoggedIn: true							
 						}
 
