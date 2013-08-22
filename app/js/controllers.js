@@ -34,6 +34,11 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 				
 				$timeout(function() {
 					$scope.resetSeconds = 20;
+					$timeout(function() {
+						$scope.resetSeconds = 20;
+						$scope.showReset = true;
+					}, 10000, true);
+
 					$scope.auctionVerify = false;
 					
 					var winnerPromise = angularFire(firebaseReference.getInstance() + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
@@ -53,6 +58,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 
 			if ($scope.auction && $scope.auction.id === auctionId) {
 				$scope.auctionFinished = false;
+				$scope.showReset = false;
 
 				$scope.auctionRef.off();
 

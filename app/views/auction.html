@@ -25,7 +25,7 @@
               <button ng-show="!isUserLoggedIn()" class="btn btn-primary" ng-click="">Sign in to Bid</button>
               <button ng-show="isZeroOrNegativeBallance()" class="btn btn-warning" ng-click="">Buy more tokens</button>
             </p>
-            <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED')">
+            <p ng-show="isAdminLoggedIn() && (auction.status == 'FINISHED') && showReset">
               <button ng-click="resetTimer()">Reset Timer</button>
               <input type="number" ng-model="resetSeconds"/>
             </p>
