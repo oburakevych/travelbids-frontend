@@ -4,9 +4,10 @@
 
 var controllersModule = angular.module('tbApp.controllers', []);
   
-controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scope', 'angularFire', '$timeout', '$filter', 'firebaseReference',
-	function($rootScope, $scope, angularFire, $timeout, $filter, firebaseReference) {
-		$scope.auctionsDiscoveryPromise = angularFire(firebaseReference.getInstance() + "/auctionlist", $scope, 'auctionlist', []);
+controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scope', '$firebase', '$timeout', '$filter', 'firebaseReference', 'FIREBASE_URL',
+	function($rootScope, $scope, $firebase, $timeout, $filter, firebaseReference, FIREBASE_URL) {
+		$scope.auctionlist = $firebase(new Firebase(FIREBASE_URL + "/auctionlist"));
+		$scope.auctionsDiscoveryPromise = $scope.auctionlist.$bind($scope, 'auctionlist');
 
 		$scope.auctionsDiscoveryPromise.then(function() {
 			console.log("AuctionsDiscoverController auctionsDiscoveryPromise resolved");
@@ -20,8 +21,8 @@ controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scop
 	}
 ]);
 
-controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angularFire', '$timeout', '$filter', 'firebaseReference', 'COUNT_DOWN_INTERVAL', 'AUCTION_VERIFY_CONDITION', 'AUCTION_FINISHED_CONDITION',
-	function($rootScope, $scope, angularFire, $timeout, $filter, firebaseReference, COUNT_DOWN_INTERVAL, AUCTION_VERIFY_CONDITION, AUCTION_FINISHED_CONDITION) {
+controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$firebase', '$timeout', '$filter', 'firebaseReference', 'COUNT_DOWN_INTERVAL', 'AUCTION_VERIFY_CONDITION', 'AUCTION_FINISHED_CONDITION',
+	function($rootScope, $scope, $firebase, $timeout, $filter, firebaseReference, COUNT_DOWN_INTERVAL, AUCTION_VERIFY_CONDITION, AUCTION_FINISHED_CONDITION) {
 		$scope.$on("AUCTION_INIT", function() {
 			$scope.init();
 		});
@@ -41,7 +42,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 
 					$scope.auctionVerify = false;
 					
-					var winnerPromise = angularFire(firebaseReference.getInstance() + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
+					var winnerPromise = $firebase(firebaseReference.getInstance() + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
 					winnerPromise.then(function(disassociate) {
 						$scope.winnerDisassociateFn = disassociate;
 					});
@@ -84,7 +85,8 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 			console.log("AUCTION_INIT");
 
 			$scope.auctionRef = firebaseReference.getInstance().child("/auction/" + $scope.auctionId);
-			angularFire($scope.auctionRef, $scope, 'auction', {})
+
+			$firebase($scope.auctionRef, $scope, 'auction', {})
 				.then(function(disassociate) {
 					$scope.auctionDisassociateFn = disassociate;
 					
@@ -312,14 +314,14 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', 'angu
 	}
 ]);
 
-controllersModule.controller('SignupController', ['$rootScope' ,'$scope', 'angularFire', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
-	function($rootScope, $scope, angularFire, angularFireAuth, $timeout, $filter, firebaseReference) {
+controllersModule.controller('SignupController', ['$rootScope' ,'$scope', '$firebase', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
+	function($rootScope, $scope, $firebase, angularFireAuth, $timeout, $filter, firebaseReference) {
 	}
 ]);
 
-
-controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angularFire', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
-	function($rootScope, $scope, angularFire, angularFireAuth, $timeout, $filter, firebaseReference) {
+/*
+controllersModule.controller('LoginController', ['$rootScope' ,'$scope', '$firebase', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
+	function($rootScope, $scope, $firebase, angularFireAuth, $timeout, $filter, firebaseReference) {
 		$scope.auth = new FirebaseSimpleLogin(firebaseReference.getInstance(), function(error, user) {
 			if (error) {
 				console.error("Error logging in: " + error);
@@ -327,7 +329,7 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 			    console.log(user.first_name + " " + user.last_name);
 
 			    var userChildLocation = user.provider + "-" + user.id;
-				$scope.userPromise = angularFire(firebaseReference.getInstance() + "/user/" + userChildLocation, $rootScope, 'authUser', {});
+				$scope.userPromise = $firebase(firebaseReference.getInstance() + "/user/" + userChildLocation, $rootScope, 'authUser', {});
 
 				$scope.userPromise.then(function(disassociate) {
 					if (!$rootScope.authUser || !$rootScope.authUser.id) {
@@ -386,5 +388,18 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', 'angula
 				firebaseReference.getInstance().child("user/" + user.id).set(user, callback);
 			}
 		}
+
+		$scope.finishSignup = function(user) {
+			if (!user.email) {
+				console.warn("User doesn't have email!");
+			}
+
+			if (!user.hasAcceptedAgreement) {
+				console.warn("User has not accepted agreement!");
+			}
+		}
+
+		$scope.$on('USER_LOGGS_IN', $scope.finishSignup);
 	}
 ]);
+*/
