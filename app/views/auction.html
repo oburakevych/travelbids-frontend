@@ -14,7 +14,7 @@
           </p>
           <p>
             <ul class="nav nav-pills nav-stacked">
-                <li ng-show="winner" class="bidder-winner"><a href="#">Winner: {{winner}}</a></li>
+                <li ng-show="winner" class="bidder-winner"><a href="#">Winner: {{winner.$value}}</a></li>
                 <li ng-hide="winner" ng-repeat="bidder in biddingHistory" class="bidder-{{$index}}"><a href="#">Winning: {{bidder.username}}</a></li>
             </ul>
           </p>

@@ -4,10 +4,6 @@
 var servicesModule = angular.module('tbApp.services', []);
 
 servicesModule.factory('firebaseReference', ['$firebase', 'FIREBASE_URL', function($firebase, FIREBASE_URL) {
-		var instance = new Firebase(FIREBASE_URL);
-      	return {
-      		getInstance: function() {
-      			return instance;
-      		}
-      	}
+	console.log("new Firebase(FIREBASE_URL)");
+	return new Firebase(FIREBASE_URL);
 }]);

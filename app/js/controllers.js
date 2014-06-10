@@ -4,16 +4,15 @@
 
 var controllersModule = angular.module('tbApp.controllers', []);
   
-controllersModule.controller('AuctionsDiscoverController', ['$rootScope', '$scope', '$firebase', '$timeout', '$filter', 'firebaseReference', 'FIREBASE_URL',
-	function($rootScope, $scope, $firebase, $timeout, $filter, firebaseReference, FIREBASE_URL) {
-		$scope.auctionlist = $firebase(new Firebase(FIREBASE_URL + "/auctionlist"));
-		$scope.auctionsDiscoveryPromise = $scope.auctionlist.$bind($scope, 'auctionlist');
+controllersModule.controller('AuctionsDiscoverController', ['$scope', '$firebase', '$timeout', 'firebaseReference',
+	function($scope, $firebase, $timeout, firebaseReference) {
+		$scope.auctionsDiscoveryPromise = $firebase(firebaseReference.child("/auctionlist")).$bind($scope, 'auctionlist');
 
 		$scope.auctionsDiscoveryPromise.then(function() {
 			console.log("AuctionsDiscoverController auctionsDiscoveryPromise resolved");
 			$timeout(function() {
 				$scope.$broadcast("AUCTION_INIT");
-			}, 500);
+			}, 400);
 			
 		}, function() {
 			console.error("AuctionsDiscoverController auctionsDiscoveryPromise rejected");
@@ -42,10 +41,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 
 					$scope.auctionVerify = false;
 					
-					var winnerPromise = $firebase(firebaseReference.getInstance() + "/user/" + $scope.auction.winnerUserId + "/name", $scope, 'winner', "");
-					winnerPromise.then(function(disassociate) {
-						$scope.winnerDisassociateFn = disassociate;
-					});
+					$scope.winner = $firebase(firebaseReference.child("/user/" + $scope.auction.winnerUserId + "/name"));
 
 					if ($scope.auctionIntervalTimerId) {
 						clearInterval($scope.auctionIntervalTimerId);
@@ -61,13 +57,14 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 				$scope.auctionFinished = false;
 				$scope.showReset = false;
 
+				$scope.auction.$off();
 				$scope.auctionRef.off();
 
 				$scope.unregisterAuctionStatusWatch();
 				$scope.auctionDisassociateFn();
 				$scope.auction = null;
+				$scope.auctionRef = null;
 				
-				$scope.winnerDisassociateFn();
 				$scope.winner = null;
 				
 				$scope.biddingHistoryRef.remove(function() {
@@ -84,13 +81,15 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 		$scope.init = function() {
 			console.log("AUCTION_INIT");
 
-			$scope.auctionRef = firebaseReference.getInstance().child("/auction/" + $scope.auctionId);
+			$scope.auctionRef = firebaseReference.child("/auction/" + $scope.auctionId);
 
-			$firebase($scope.auctionRef, $scope, 'auction', {})
-				.then(function(disassociate) {
-					$scope.auctionDisassociateFn = disassociate;
+			var f = $firebase($scope.auctionRef);
+
+			var promice = f.$bind($scope, 'auction');
+				promice.then(function(unbind) {
+					$scope.auctionDisassociateFn = unbind;
 					
-					$scope.biddingHistoryRef = firebaseReference.getInstance().child('bidding-history/auction/' + $scope.auction.id);
+					$scope.biddingHistoryRef = firebaseReference.child('bidding-history/auction/' + $scope.auction.id);
 					$scope.biddingHistory = FixedQueue(1);
 					$scope.pendingBiddingHistoryEntry = {};
 					$scope.biddingHistoryQuery = $scope.biddingHistoryRef.limit(10);
@@ -98,7 +97,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 						$scope.biddingHistory.unshift(bidderSnapshot.val());
 					});
 
-					$scope.offsetRef = firebaseReference.getInstance().child("/.info/serverTimeOffset");
+					$scope.offsetRef = firebaseReference.child("/.info/serverTimeOffset");
 					$scope.offsetRef.on("value", function(snap) {
 						$scope.serverOffsetMillis = snap.val();
 						console.log("Offset: " + $scope.serverOffsetMillis);
@@ -204,7 +203,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 				return;
 			}
 
-			$scope.auctionRef.transaction(function(auction) {
+			$scope.auction.$transaction(function(auction) {
 				var auctionEndDate = $scope.getNewEndDate();
 
 				if (auctionEndDate) {
@@ -217,16 +216,12 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 				$scope.biddingHistoryEntry = $scope.biddingHistoryRef.push({'username': $rootScope.authUser.name, 'userId': $rootScope.authUser.id, 'date': Firebase.ServerValue.TIMESTAMP});
 
 				return auction;
-			}, function(error, committed, snapshot) {
-				if (error) {
-					console.error("Error increasing auction price: " + error);
-					$rootScope.authUser.balance += 1.0; // Roll back account balance
-					$scope.biddingHistoryEntry.remove();
-				}
-
-				if (committed) {
-					
-				}
+			}).then(function(snapshot) {
+				// committed successfully
+			}, function(error) {
+				console.error("Error increasing auction price: " + error);
+				$rootScope.authUser.balance += 1.0; // Roll back account balance
+				$scope.biddingHistoryEntry.remove();				
 			});
 		}
 
@@ -288,7 +283,7 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 		}
 
 		$scope.resetTimer = function() {
-			$scope.auctionRef.transaction(function(auction) {
+			$scope.auction.$transaction(function(auction) {
 					console.log("About to Set COUNTDOWN in transaction");
 					auction.status = "COUNTDOWN";
 					console.log("Set COUNTDOWN in transaction");
@@ -314,22 +309,17 @@ controllersModule.controller('AuctionController', ['$rootScope' ,'$scope', '$fir
 	}
 ]);
 
-controllersModule.controller('SignupController', ['$rootScope' ,'$scope', '$firebase', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
-	function($rootScope, $scope, $firebase, angularFireAuth, $timeout, $filter, firebaseReference) {
-	}
-]);
 
-/*
-controllersModule.controller('LoginController', ['$rootScope' ,'$scope', '$firebase', 'angularFireAuth','$timeout', '$filter', 'firebaseReference',
-	function($rootScope, $scope, $firebase, angularFireAuth, $timeout, $filter, firebaseReference) {
-		$scope.auth = new FirebaseSimpleLogin(firebaseReference.getInstance(), function(error, user) {
-			if (error) {
-				console.error("Error logging in: " + error);
-			} else if(user) {
-			    console.log(user.first_name + " " + user.last_name);
+controllersModule.controller('LoginController', ['$rootScope' ,'$scope', '$firebase', '$firebaseSimpleLogin','$timeout', '$filter', 'firebaseReference',
+	function($rootScope, $scope, $firebase, $firebaseSimpleLogin, $timeout, $filter, firebaseReference) {
+		$scope.auth = $firebaseSimpleLogin(firebaseReference);
+
+		var loginSuccess = function(user) {
+			if (user) {
+			    console.log(user.displayName);
 
 			    var userChildLocation = user.provider + "-" + user.id;
-				$scope.userPromise = $firebase(firebaseReference.getInstance() + "/user/" + userChildLocation, $rootScope, 'authUser', {});
+				$scope.userPromise = $firebase(firebaseReference.child("/user/" + userChildLocation)).$bind($rootScope, 'authUser');
 
 				$scope.userPromise.then(function(disassociate) {
 					if (!$rootScope.authUser || !$rootScope.authUser.id) {
@@ -364,7 +354,7 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', '$fireb
 
 					$scope.logout = function() {
 						console.log("Logging out user " + $rootScope.authUser.name);
-						$scope.auth.logout();
+						$scope.auth.$logout();
 						$rootScope.authUser.isLoggedIn = false;
 
 						$rootScope.$broadcast("USER_LOGGS_OUT", $rootScope.authUser.id);
@@ -373,19 +363,23 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', '$fireb
 						$rootScope.authUser = null;
 					}
 				});
-		  	}
-		});
+			}
+		};
+
+		var loginError = function(error) {
+			console.error("Error logging in: " + error);
+		}
 
 		$scope.login = function(serviceProvider, permissions) {
-			$scope.auth.login(serviceProvider, {
+			$scope.auth.$login(serviceProvider, {
   				rememberMe: true,
   				scope: permissions
-			});
+			}).then(loginSuccess, loginError);
 		}
 
 		$scope.registerUser = function(user, callback) {
 			if (user) {
-				firebaseReference.getInstance().child("user/" + user.id).set(user, callback);
+				firebaseReference.child("user/" + user.id).set(user, callback);
 			}
 		}
 
@@ -402,4 +396,3 @@ controllersModule.controller('LoginController', ['$rootScope' ,'$scope', '$fireb
 		$scope.$on('USER_LOGGS_IN', $scope.finishSignup);
 	}
 ]);
-*/
